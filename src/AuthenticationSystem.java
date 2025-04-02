@@ -18,7 +18,7 @@ public class AuthenticationSystem {
 		} else {
 			System.out.println("Invalid username or password.");
 		}
-
+		
 		Arrays.fill(username, ' ');
 		Arrays.fill(password, ' ');
 

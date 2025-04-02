@@ -1,46 +1,32 @@
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.Arrays;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class SecureStorage {
-	private static final byte[] SALT = loadSalt();
+
+	private static final String STORED_USERNAME = "Alexsandro";
+	private static final String STORED_PASSWORD_HASH = hashPassword("password#123!");
 
 	public static boolean verifyCredentials(char[] username, char[] password) {
-		byte[] usernameHash = hash(username);
-		byte[] passwordHash = hash(password);
+		String usernameStr = new String(username);
+		String passwordStr = new String(password);
 
-		boolean isValid = Arrays.equals(usernameHash, hash("Alexsandro".toCharArray())) &&
-				Arrays.equals(passwordHash, hash("password#123!".toCharArray()));
+		boolean isValid = STORED_USERNAME.equals(usernameStr) &&
+				BCrypt.checkpw(passwordStr, STORED_PASSWORD_HASH);
 
-		Arrays.fill(username, ' ');
-		Arrays.fill(password, ' ');
+		clearArray(username);
+		clearArray(password);
 
 		return isValid;
 	}
 
-	private static byte[] hash(char[] input) {
-		try {
-			MessageDigest md = MessageDigest.getInstance("SHA-256");
-			md.update(SecureStorage.SALT);
-			return md.digest(charArrayToBytes(input));
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("Error generating hash", e);
-		}
+	private static String hashPassword(String password) {
+		return BCrypt.hashpw(password, BCrypt.gensalt(12));
 	}
 
-	private static byte[] charArrayToBytes(char[] input) {
-		byte[] bytes = new byte[input.length];
-		for (int i = 0; i < input.length; i++) {
-			bytes[i] = (byte) input[i];
+	private static void clearArray(char[] array) {
+		if (array != null) {
+			for (int i = 0; i < array.length; i++) {
+				array[i] = '\0';
+			}
 		}
-		return bytes;
-	}
-
-	private static byte[] loadSalt() {
-		SecureRandom random = new SecureRandom();
-		byte[] salt = new byte[16];
-		random.nextBytes(salt);
-		return salt;
 	}
 }
